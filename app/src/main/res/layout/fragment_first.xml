@@ -34,5 +34,15 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Select Devices"/>
+        <Button
+            android:id="@+id/btnOpenSecondPage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Open Second Page"/>
+        <Button
+            android:id="@+id/btnOpenThirdPage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Open Third Page"/>
     </LinearLayout>
 </ScrollView>

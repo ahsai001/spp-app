@@ -13,6 +13,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.Navigation;
 import androidx.navigation.fragment.NavHostFragment;
 
 import app.akexorcist.bluetotohspp.library.BluetoothSPP;
@@ -72,6 +73,23 @@ public class FirstFragment extends Fragment {
                 bt.send(info,true);
                 etMessage.setText("");
                 showInfo("Me : "+info);
+            }
+        });
+
+
+        view.findViewById(R.id.btnOpenSecondPage).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                NavHostFragment.findNavController(FirstFragment.this)
+                        .navigate(R.id.action_FirstFragment_to_SecondFragment);
+            }
+        });
+
+        view.findViewById(R.id.btnOpenThirdPage).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                NavHostFragment.findNavController(FirstFragment.this)
+                        .navigate(R.id.action_FirstFragment_to_ThirdFragment);
             }
         });
     }
@@ -159,10 +177,7 @@ public class FirstFragment extends Fragment {
         bt.stopService();
     }
 
-    StringBuilder infoBuilder = new StringBuilder();
     private void showInfo(String info){
-        infoBuilder.append(info);
-        infoBuilder.append("\n");
-        tvMessage.setText(infoBuilder.toString());
+        tvMessage.append(info);
     }
 }

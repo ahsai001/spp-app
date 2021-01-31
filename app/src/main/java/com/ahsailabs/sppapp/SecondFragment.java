@@ -1,15 +1,29 @@
 package com.ahsailabs.sppapp;
 
+import android.hardware.usb.UsbDevice;
 import android.os.Bundle;
+import android.text.method.ScrollingMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
-public class SecondFragment extends Fragment {
+import me.aflak.arduino.Arduino;
+import me.aflak.arduino.ArduinoListener;
+
+public class SecondFragment extends Fragment implements ArduinoListener {
+    private Arduino arduino;
+
+    private TextView displayTextView;
+    private EditText editText;
+    private Button sendBtn;
 
     @Override
     public View onCreateView(
@@ -30,5 +44,59 @@ public class SecondFragment extends Fragment {
                         .navigate(R.id.action_SecondFragment_to_FirstFragment);
             }
         });
+
+        displayTextView = view.findViewById(R.id.diplayTextView);
+        editText = view.findViewById(R.id.editText);
+        sendBtn = view.findViewById(R.id.sendBtn);
+        displayTextView.setMovementMethod(new ScrollingMovementMethod());
+        sendBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String editTextString = editText.getText().toString();
+                arduino.send(editTextString.getBytes());
+                editText.getText().clear();
+            }
+        });
+
+        arduino = new Arduino(requireContext());
+        arduino.setArduinoListener(this);
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        arduino.unsetArduinoListener();
+        arduino.close();
+    }
+
+    private void showInfo(final String message){
+        requireActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                displayTextView.append(message);
+            }
+        });
+    }
+
+    @Override
+    public void onArduinoAttached(UsbDevice device) {
+        showInfo("arduino attached...");
+        arduino.open(device);
+    }
+
+    @Override
+    public void onArduinoDetached() {
+        showInfo("arduino detached.");
+    }
+
+    @Override
+    public void onArduinoMessage(byte[] bytes) {
+        showInfo(new String(bytes));
+    }
+
+    @Override
+    public void onArduinoOpened() {
+        String str = "arduino opened...";
+        arduino.send(str.getBytes());
     }
 }
