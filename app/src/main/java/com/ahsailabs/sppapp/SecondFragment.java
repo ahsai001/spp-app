@@ -72,13 +72,13 @@ public class SecondFragment extends Fragment implements ArduinoListener {
 
     @Override
     public void onArduinoAttached(UsbDevice device) {
-        showInfo("arduino attached...");
+        showInfo("device attached...");
         arduino.open(device);
     }
 
     @Override
     public void onArduinoDetached() {
-        showInfo("arduino detached.");
+        showInfo("device detached.");
     }
 
     @Override
@@ -88,7 +88,7 @@ public class SecondFragment extends Fragment implements ArduinoListener {
 
     @Override
     public void onArduinoOpened() {
-        String str = "arduino opened...";
+        String str = "device opened...";
         arduino.send(str.getBytes());
     }
 }
