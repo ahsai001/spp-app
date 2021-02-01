@@ -6,16 +6,23 @@
     android:orientation="vertical"
     tools:context=".SecondFragment">
     <TextView
-        android:id="@+id/textview_second"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
-
-    <Button
-        android:id="@+id/button_second"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/previous" />
+        android:layout_marginLeft="5dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginRight="5dp"
+        android:text="This is USB Serial Com Page\nFirst make sure your devices support OTG, then connect your devices, then send message or received message\n\nReceived Messages From Arduino:"/> />
 
+    <TextView
+        android:id="@+id/diplayTextView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_margin="5dp"
+        android:layout_weight="1"
+        android:background="@android:color/darker_gray"
+        android:scrollbars="vertical"
+        android:textColor="@android:color/black"
+        android:textSize="16sp" />
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -30,27 +37,10 @@
 
     <Button
         android:id="@+id/sendBtn"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="5dp"
         android:text="Send" />
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="5dp"
-        android:layout_marginTop="5dp"
-        android:layout_marginRight="5dp"
-        android:text="Received Messages From Arduino:" />
 
-    <TextView
-        android:id="@+id/diplayTextView"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_margin="5dp"
-        android:layout_weight="1"
-        android:background="@android:color/darker_gray"
-        android:scrollbars="vertical"
-        android:textColor="@android:color/black"
-        android:textSize="16sp" />
 </LinearLayout>

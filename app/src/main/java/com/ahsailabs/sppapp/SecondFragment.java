@@ -37,14 +37,6 @@ public class SecondFragment extends Fragment implements ArduinoListener {
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        view.findViewById(R.id.button_second).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                NavHostFragment.findNavController(SecondFragment.this)
-                        .navigate(R.id.action_SecondFragment_to_FirstFragment);
-            }
-        });
-
         displayTextView = view.findViewById(R.id.diplayTextView);
         editText = view.findViewById(R.id.editText);
         sendBtn = view.findViewById(R.id.sendBtn);
@@ -52,7 +44,7 @@ public class SecondFragment extends Fragment implements ArduinoListener {
         sendBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String editTextString = editText.getText().toString();
+                String editTextString = editText.getText().toString()+"\n";
                 arduino.send(editTextString.getBytes());
                 editText.getText().clear();
             }

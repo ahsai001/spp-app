@@ -4,17 +4,17 @@ import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.method.ScrollingMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.EditText;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.navigation.Navigation;
-import androidx.navigation.fragment.NavHostFragment;
+
+import com.google.android.material.textfield.TextInputEditText;
 
 import app.akexorcist.bluetotohspp.library.BluetoothSPP;
 import app.akexorcist.bluetotohspp.library.BluetoothState;
@@ -22,7 +22,7 @@ import app.akexorcist.bluetotohspp.library.DeviceList;
 
 public class FirstFragment extends Fragment {
     BluetoothSPP bt;
-    EditText etMessage;
+    TextInputEditText etMessage;
     TextView tvMessage;
     String clientName = "";
     @Override
@@ -44,6 +44,7 @@ public class FirstFragment extends Fragment {
 
         etMessage = view.findViewById(R.id.etMessage);
         tvMessage = view.findViewById(R.id.tvMessage);
+        tvMessage.setMovementMethod(new ScrollingMovementMethod());
         view.findViewById(R.id.btnSelectDevices).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -73,23 +74,6 @@ public class FirstFragment extends Fragment {
                 bt.send(info,true);
                 etMessage.setText("");
                 showInfo("Me : "+info);
-            }
-        });
-
-
-        view.findViewById(R.id.btnOpenSecondPage).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                NavHostFragment.findNavController(FirstFragment.this)
-                        .navigate(R.id.action_FirstFragment_to_SecondFragment);
-            }
-        });
-
-        view.findViewById(R.id.btnOpenThirdPage).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                NavHostFragment.findNavController(FirstFragment.this)
-                        .navigate(R.id.action_FirstFragment_to_ThirdFragment);
             }
         });
     }
@@ -178,6 +162,6 @@ public class FirstFragment extends Fragment {
     }
 
     private void showInfo(String info){
-        tvMessage.append(info);
+        tvMessage.append("\n"+info);
     }
 }
