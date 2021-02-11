@@ -5,6 +5,16 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context=".SecondFragment">
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tlPanel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+    <LinearLayout
+        android:id="@+id/llMainPanel"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -19,6 +29,7 @@
         android:layout_height="0dp"
         android:layout_margin="5dp"
         android:layout_weight="1"
+        android:gravity="bottom"
         android:background="@android:color/darker_gray"
         android:scrollbars="vertical"
         android:textColor="@android:color/black"
@@ -41,6 +52,17 @@
         android:layout_height="wrap_content"
         android:layout_margin="5dp"
         android:text="Send" />
-
-
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/llChartPanel"
+        android:visibility="gone"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
+        <com.github.mikephil.charting.charts.LineChart
+            android:id="@+id/lcChart"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+    </LinearLayout>
 </LinearLayout>
