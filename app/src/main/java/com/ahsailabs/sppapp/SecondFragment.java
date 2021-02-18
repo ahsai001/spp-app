@@ -96,11 +96,13 @@ public class SecondFragment extends Fragment {
                         .addOnSuccessListener(new OnSuccessListener<DataSnapshot>() {
                             @Override
                             public void onSuccess(DataSnapshot dataSnapshot) {
+                                showInfo("======= start of list ==========");
                                 for (DataSnapshot document : dataSnapshot.getChildren()){
                                     Map<String, Object> object = (Map<String, Object>) document.getValue();
                                     String data = "data : " + object.get("value");
                                     showInfo(data);
                                 }
+                                showInfo("======= end of list ==========");
                             }
                         });
             }

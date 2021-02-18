@@ -93,10 +93,12 @@ public class FirstFragment extends Fragment {
                             @Override
                             public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
                                 //TODO :
+                                showInfo("======= start of list ==========");
                                 for (QueryDocumentSnapshot document : queryDocumentSnapshots){
                                     String data = "data : " + document.get("value");
                                     showInfo(data);
                                 }
+                                showInfo("======= end of list ==========");
                             }
                         })
                         .addOnFailureListener(new OnFailureListener() {
