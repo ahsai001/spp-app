@@ -9,7 +9,7 @@
         android:id="@+id/HomeFragment"
         android:name="com.ahsailabs.sppapp.HomeFragment"
         android:label="@string/first_fragment_label"
-        tools:layout="@layout/fragment_first">
+        tools:layout="@layout/fragment_home">
         <action
             android:id="@+id/action_HomeFragment_to_FirstFragment"
             app:destination="@id/FirstFragment" />
@@ -19,6 +19,9 @@
         <action
             android:id="@+id/action_HomeFragment_to_ThirdFragment"
             app:destination="@id/ThirdFragment" />
+        <action
+            android:id="@+id/action_HomeFragment_to_ForthFragment"
+            app:destination="@id/ForthFragment" />
     </fragment>
 
     <fragment
@@ -26,27 +29,24 @@
         android:name="com.ahsailabs.sppapp.FirstFragment"
         android:label="@string/first_fragment_label"
         tools:layout="@layout/fragment_first">
-        <action
-            android:id="@+id/action_FirstFragment_to_HomeFragment"
-            app:destination="@id/HomeFragment" />
     </fragment>
     <fragment
         android:id="@+id/SecondFragment"
         android:name="com.ahsailabs.sppapp.SecondFragment"
-        android:label="@string/second_fragment_label"
-        tools:layout="@layout/fragment_second">
-        <action
-            android:id="@+id/action_SecondFragment_to_HomeFragment"
-            app:destination="@id/HomeFragment" />
+        android:label="@string/first_fragment_label"
+        tools:layout="@layout/fragment_first">
     </fragment>
-
     <fragment
         android:id="@+id/ThirdFragment"
         android:name="com.ahsailabs.sppapp.ThirdFragment"
         android:label="@string/second_fragment_label"
-        tools:layout="@layout/fragment_second">
-        <action
-            android:id="@+id/action_ThirdFragment_to_HomeFragment"
-            app:destination="@id/HomeFragment" />
+        tools:layout="@layout/fragment_third">
+    </fragment>
+
+    <fragment
+        android:id="@+id/ForthFragment"
+        android:name="com.ahsailabs.sppapp.ForthFragment"
+        android:label="@string/second_fragment_label"
+        tools:layout="@layout/fragment_third">
     </fragment>
 </navigation>

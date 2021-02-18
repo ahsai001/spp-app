@@ -55,5 +55,13 @@ public class HomeFragment extends Fragment {
                         .navigate(R.id.action_HomeFragment_to_ThirdFragment);
             }
         });
+
+        view.findViewById(R.id.btnOpenForthPage).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                NavHostFragment.findNavController(HomeFragment.this)
+                        .navigate(R.id.action_HomeFragment_to_ForthFragment);
+            }
+        });
     }
 }

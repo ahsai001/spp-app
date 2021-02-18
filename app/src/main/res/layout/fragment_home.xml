@@ -19,17 +19,24 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAllCaps="false"
-        android:text="Bluetooth Chat" />
+        android:text="Bluetooth Chat + FireStore" />
 
     <Button
         android:id="@+id/btnOpenSecondPage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAllCaps="false"
-        android:text="USB Serial Communication 1" />
+        android:text="Bluetooth Chat + Realtime Database" />
 
     <Button
         android:id="@+id/btnOpenThirdPage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAllCaps="false"
+        android:text="USB Serial Communication 1" />
+
+    <Button
+        android:id="@+id/btnOpenForthPage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAllCaps="false"

@@ -3,17 +3,8 @@ package com.ahsailabs.sppapp;
 import android.content.Intent;
 import android.os.Bundle;
 
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
-
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.navigation.NavHostController;
-import androidx.navigation.Navigation;
-import androidx.navigation.fragment.NavHostFragment;
-import androidx.navigation.ui.NavigationUI;
-
-import android.view.View;
 
 import android.view.Menu;
 import android.view.MenuItem;
@@ -53,9 +44,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onNewIntent(Intent intent) {
         if(intent.getAction().equals("android.hardware.usb.action.USB_DEVICE_ATTACHED")) {
-            ThirdFragment thirdFragment = (ThirdFragment)getSupportFragmentManager().findFragmentByTag("terminal");
-            if (thirdFragment != null)
-                thirdFragment.showInfo("USB device detected");
+            ForthFragment forthFragment = (ForthFragment)getSupportFragmentManager().findFragmentByTag("terminal");
+            if (forthFragment != null)
+                forthFragment.showInfo("USB device detected");
         }
         super.onNewIntent(intent);
     }

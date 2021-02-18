@@ -1,51 +1,49 @@
 package com.ahsailabs.sppapp;
 
-import android.graphics.Color;
-import android.hardware.usb.UsbDevice;
+import android.app.Activity;
+import android.bluetooth.BluetoothAdapter;
+import android.content.Intent;
 import android.os.Bundle;
-import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
-import androidx.navigation.fragment.NavHostFragment;
 
-import com.github.mikephil.charting.charts.LineChart;
-import com.github.mikephil.charting.components.Legend;
-import com.github.mikephil.charting.components.LimitLine;
-import com.github.mikephil.charting.components.XAxis;
-import com.github.mikephil.charting.components.YAxis;
-import com.github.mikephil.charting.data.Entry;
-import com.github.mikephil.charting.data.LineData;
-import com.github.mikephil.charting.data.LineDataSet;
-import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
-import com.github.mikephil.charting.utils.ColorTemplate;
-import com.google.android.material.tabs.TabLayout;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
-import me.aflak.arduino.Arduino;
-import me.aflak.arduino.ArduinoListener;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
-public class SecondFragment extends Fragment implements ArduinoListener {
-    private Arduino arduino;
+import app.akexorcist.bluetotohspp.library.BluetoothSPP;
+import app.akexorcist.bluetotohspp.library.BluetoothState;
+import app.akexorcist.bluetotohspp.library.DeviceList;
 
-    private TextView displayTextView;
-    private EditText editText;
-    private Button sendBtn;
+public class SecondFragment extends Fragment {
+    BluetoothSPP bt;
+    private TextView tvMessage;
+    private String clientName;
+    private TextInputEditText etMessage = null;
 
-
-    private TabLayout tlPanel;
-    private LinearLayout llMainPanel;
-    private LinearLayout llChartPanel;
-    private LineChart lcChart;
-    private StringBuilder strBuilder = new StringBuilder();
+    private DatabaseReference firebaseDatabase;
 
     @Override
     public View onCreateView(
@@ -53,237 +51,191 @@ public class SecondFragment extends Fragment implements ArduinoListener {
             Bundle savedInstanceState
     ) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_second, container, false);
+        return inflater.inflate(R.layout.fragment_first, container, false);
     }
 
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        displayTextView = view.findViewById(R.id.diplayTextView);
-        editText = view.findViewById(R.id.editText);
-        sendBtn = view.findViewById(R.id.sendBtn);
-        displayTextView.setMovementMethod(new ScrollingMovementMethod());
-        sendBtn.setOnClickListener(new View.OnClickListener() {
+        view.findViewById(R.id.btnSend).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String info = etMessage.getText().toString();
+                save(info);
+                /*
+                bt.send(info, true);
+
+                etMessage.setText("");
+                showInfo("Me : "+info);*/
+            }
+        });
+
+        view.findViewById(R.id.btnSelectDevices).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(bt.getServiceState() == BluetoothState.STATE_CONNECTED){
+                    bt.disconnect();
+                } else {
+                    bt.startDiscovery();
+                    Intent intent = new Intent(view.getContext(), DeviceList.class);
+                    startActivityForResult(intent, BluetoothState.REQUEST_CONNECT_DEVICE);
+                }
+            }
+        });
+
+        tvMessage = view.findViewById(R.id.tvMessage);
+        TextInputEditText etView = view.findViewById(R.id.etMessage);;
+        etMessage = etView;
+
+        view.findViewById(R.id.btnGetList).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String editTextString = editText.getText().toString()+"\n";
-                arduino.send(editTextString.getBytes());
-                editText.getText().clear();
+                //get list from collection firestore
+                firebaseDatabase.child("spplogs")
+                        .child("sensor1")
+                        .child("data")
+                        .get()
+                        .addOnSuccessListener(new OnSuccessListener<DataSnapshot>() {
+                            @Override
+                            public void onSuccess(DataSnapshot dataSnapshot) {
+                                for (DataSnapshot document : dataSnapshot.getChildren()){
+                                    Map<String, Object> object = (Map<String, Object>) document.getValue();
+                                    String data = "data : " + object.get("value");
+                                    showInfo(data);
+                                }
+                            }
+                        });
+            }
+        });
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        ((AppCompatActivity)getActivity()).getSupportActionBar().setTitle(getString(R.string.first_fragment_label));
+
+        firebaseDatabase = FirebaseDatabase.getInstance().getReference();
+
+        bt = new BluetoothSPP(getActivity());
+        bt.setBluetoothConnectionListener(new BluetoothSPP.BluetoothConnectionListener() {
+            @Override
+            public void onDeviceConnected(String name, String address) {
+                clientName = name+"("+address+")";
+                showInfo("onDeviceConnected "+clientName);
+            }
+
+            @Override
+            public void onDeviceDisconnected() {
+                showInfo("onDeviceDisconnected");
+            }
+
+            @Override
+            public void onDeviceConnectionFailed() {
+                showInfo("onDeviceConnectionFailed");
             }
         });
 
-        chartSetup(view);
-
-        arduino = new Arduino(requireContext());
-        arduino.setArduinoListener(this);
-    }
-
-    private void chartSetup(View view) {
-        tlPanel = view.findViewById(R.id.tlPanel);
-        llMainPanel = view.findViewById(R.id.llMainPanel);
-        llChartPanel = view.findViewById(R.id.llChartPanel);
-        tlPanel.addTab(tlPanel.newTab().setText("Text"));
-        tlPanel.addTab(tlPanel.newTab().setText("Chart"));
-        tlPanel.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+        bt.setBluetoothStateListener(new BluetoothSPP.BluetoothStateListener() {
             @Override
-            public void onTabSelected(TabLayout.Tab tab) {
-                if(tab.getText().equals("Text")){
-                    llMainPanel.setVisibility(View.VISIBLE);
-                    llChartPanel.setVisibility(View.GONE);
-                } else {
-                    llMainPanel.setVisibility(View.GONE);
-                    llChartPanel.setVisibility(View.VISIBLE);
+            public void onServiceStateChanged(int state) {
+                if(state == BluetoothState.STATE_CONNECTED) {
+                    // Do something when successfully connected
+                    showInfo("STATE_CONNECTED");
+                } else if(state == BluetoothState.STATE_CONNECTING) {
+                    // Do something while connecting
+                    showInfo("STATE_CONNECTING");
+                } else if(state == BluetoothState.STATE_LISTEN) {
+                    // Do something when device is waiting for connection
+                    showInfo("STATE_LISTEN");
+                } else if(state == BluetoothState.STATE_NONE) {
+                    // Do something when device don't have any connection
+                    showInfo("STATE_NONE");
                 }
             }
+        });
 
+        bt.setOnDataReceivedListener(new BluetoothSPP.OnDataReceivedListener() {
             @Override
-            public void onTabUnselected(TabLayout.Tab tab) {
-
-            }
-
-            @Override
-            public void onTabReselected(TabLayout.Tab tab) {
-
+            public void onDataReceived(byte[] data, String message) {
+                showInfo(clientName+" : "+message);
+                save(message);
             }
         });
 
-        lcChart = view.findViewById(R.id.lcChart);
-        setupChart();
-        setupAxes();
-        setupData();
-        setLegend();
-    }
-
-    private void setupChart() {
-        // disable description text
-        lcChart.getDescription().setEnabled(false);
-        // enable touch gestures
-        lcChart.setTouchEnabled(true);
-        // if disabled, scaling can be done on x- and y-axis separately
-        lcChart.setPinchZoom(true);
-        // enable scaling
-        lcChart.setScaleEnabled(true);
-        lcChart.setDrawGridBackground(false);
-        // set an alternative background color
-        lcChart.setBackgroundColor(Color.DKGRAY);
-    }
-
-    private void setupAxes() {
-        XAxis xl = lcChart.getXAxis();
-        xl.setTextColor(Color.WHITE);
-        xl.setDrawGridLines(false);
-        xl.setAvoidFirstLastClipping(true);
-        xl.setEnabled(true);
-
-        YAxis leftAxis = lcChart.getAxisLeft();
-        leftAxis.setTextColor(Color.WHITE);
-        //leftAxis.setAxisMaximum(TOTAL_MEMORY);
-        leftAxis.setAxisMinimum(0f);
-        leftAxis.setDrawGridLines(true);
-
-        YAxis rightAxis = lcChart.getAxisRight();
-        rightAxis.setEnabled(false);
-
-        // Add a limit line
-        /*
-        LimitLine ll = new LimitLine(LIMIT_MAX_MEMORY, "Upper Limit");
-        ll.setLineWidth(2f);
-        ll.setLabelPosition(LimitLine.LimitLabelPosition.RIGHT_TOP);
-        ll.setTextSize(10f);
-        ll.setTextColor(Color.WHITE);
-        // reset all limit lines to avoid overlapping lines
-        leftAxis.removeAllLimitLines();
-        leftAxis.addLimitLine(ll);
-        // limit lines are drawn behind data (and not on top)
-        leftAxis.setDrawLimitLinesBehindData(true);
-         */
-    }
-
-    private void setupData() {
-        LineData data = new LineData();
-        data.setValueTextColor(Color.WHITE);
-
-        // add empty data
-        lcChart.setData(data);
-    }
-
-    private void setLegend() {
-        // get the legend (only possible after setting data)
-        Legend l = lcChart.getLegend();
-
-        // modify the legend ...
-        l.setForm(Legend.LegendForm.CIRCLE);
-        l.setTextColor(Color.WHITE);
-    }
-
-
-    private LineDataSet createSet() {
-        LineDataSet set = new LineDataSet(null, "Serial Data");
-        set.setAxisDependency(YAxis.AxisDependency.LEFT);
-        set.setColors(ColorTemplate.VORDIPLOM_COLORS[0]);
-        set.setCircleColor(Color.WHITE);
-        set.setLineWidth(2f);
-        set.setCircleRadius(4f);
-        set.setValueTextColor(Color.WHITE);
-        set.setValueTextSize(10f);
-        // To show values of each point
-        set.setDrawValues(true);
-
-        return set;
-    }
-
-    private void addEntry(float value) {
-        LineData data = lcChart.getData();
-
-        if (data != null) {
-            ILineDataSet set = data.getDataSetByIndex(0);
-
-            if (set == null) {
-                set = createSet();
-                data.addDataSet(set);
-            }
-
-            data.addEntry(new Entry(set.getEntryCount(), value), 0);
-
-            // let the chart know it's data has changed
-            data.notifyDataChanged();
-            lcChart.notifyDataSetChanged();
-
-            // limit the number of visible entries
-            lcChart.setVisibleXRangeMaximum(15);
-
-            // move to the latest entry
-            lcChart.moveViewToX(data.getEntryCount());
-        }
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        arduino.unsetArduinoListener();
-        arduino.close();
-    }
-
-    private void showInfo(final String message){
-        requireActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                displayTextView.append(message);
-            }
-        });
-    }
-
-    @Override
-    public void onArduinoAttached(UsbDevice device) {
-        showInfo("device attached...");
-        arduino.open(device);
-    }
-
-    @Override
-    public void onArduinoDetached() {
-        showInfo("device detached.");
-    }
-
-
-    @Override
-    public void onArduinoMessage(byte[] bytes) {
-        String data = new String(bytes);
-        showInfo(data);
-        addToChart(data);
-    }
-    private void addToChart(String data){
-        strBuilder.append(data);
-        consumeFirstDataIfReady();
-    }
-
-
-    private void consumeFirstDataIfReady() {
-        String lastString = strBuilder.toString();
-        if(lastString.contains(")")){
-            int startIndex = lastString.indexOf("(");
-            int endIndex = lastString.indexOf(")", startIndex);
-            Log.d("arduino", "check : "+lastString);
-            if(startIndex < endIndex) {
-                String eggString = lastString.substring(startIndex, endIndex+1);
-                Log.d("arduino", "new egg : " + eggString);
-                String pureEggString = eggString.trim().replace("(", "").replace(")", "");
-                String[] splittedPureEgg = pureEggString.split(",");
-                if (splittedPureEgg.length == 2) {
-                    float newValue = Float.parseFloat(splittedPureEgg[1]);
-                    Log.d("arduino", "new value : " + newValue);
-                    addEntry(newValue);
-                    strBuilder.delete(startIndex, endIndex+1);
-                    if(startIndex > 0)
-                        strBuilder.delete(0, startIndex);
+        if(!bt.isBluetoothAvailable()){
+            //TODO : bluetooth is not available
+            showInfo("bluetooth is not available");
+        } else {
+            if(!bt.isBluetoothEnabled()){
+                //TODO : request enable bluetooth
+                Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                startActivityForResult(intent, BluetoothState.REQUEST_ENABLE_BT);
+            } else {
+                if(!bt.isServiceAvailable()){
+                    setupAndStartService();
                 }
-
             }
         }
     }
 
+    private void save(String message) {
+        Map<String, Object> newValue = new HashMap<>();
+        newValue.put("value", message);
+        newValue.put("client", clientName);
+        newValue.put("year", 2021);
+        newValue.put("date", new Date());
+
+        firebaseDatabase.child("spplogs")
+                .child("sensor1")
+                .child("data")
+                .push()
+                .setValue(newValue)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Log.d("SPP", "New saved data id : "+ aVoid);
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.w("SPP", "Error adding new data", e);
+                    }
+                });
+    }
+
     @Override
-    public void onArduinoOpened() {
-        String str = "device opened...";
-        arduino.send(str.getBytes());
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == BluetoothState.REQUEST_ENABLE_BT){
+            if(resultCode == Activity.RESULT_OK){
+                setupAndStartService();
+            } else {
+                showInfo("bluetooth is not enabled, please enable it");
+            }
+        } else if(requestCode == BluetoothState.REQUEST_CONNECT_DEVICE){
+            if(resultCode == Activity.RESULT_OK){
+                bt.connect(data);
+            } else {
+                showInfo("ada masalah");
+            }
+        }
+    }
+
+    private void setupAndStartService() {
+        //TODO : what we want
+        bt.setupService();
+        bt.startService(BluetoothState.DEVICE_ANDROID);
+    }
+
+    private void showInfo(String info) {
+        //TODO : what we want
+        tvMessage.append("\n"+info);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        bt.stopService();
     }
 }

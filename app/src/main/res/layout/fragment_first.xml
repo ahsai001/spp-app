@@ -5,44 +5,55 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:padding="10dp"
     tools:context=".FirstFragment">
+
+
         <TextView
+            android:id="@+id/textView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="5dp"
-            android:layout_marginTop="5dp"
-            android:layout_marginRight="5dp"
-            android:text="This is Bluetooth Chat Page\nFirst select devices, then chat as you want\n\nReceived Messages:"/> />
+            android:text="This is Bluetooth Chat Page\nFirst select devices, then chat as you want\n\nReceived Messages:" />
+
 
         <TextView
             android:id="@+id/tvMessage"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
             android:background="@android:color/darker_gray"
-            android:scrollbars="vertical"
-            android:textColor="@android:color/black"
-            android:textSize="16sp"/>
+            android:scrollbars="vertical" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
-            android:hint="your message"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_height="wrap_content">
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etMessage"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etMessage"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Your message" />
         </com.google.android.material.textfield.TextInputLayout>
+
         <Button
             android:id="@+id/btnSend"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Send" />
+            android:text="Send"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/btnGetList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Get List"
+            android:textAllCaps="false" />
 
         <Button
             android:id="@+id/btnSelectDevices"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Select Devices"/>
+            android:text="Select devices"
+            android:textAllCaps="false" />
 </LinearLayout>

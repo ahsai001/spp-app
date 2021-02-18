@@ -4,7 +4,7 @@ import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Intent;
 import android.os.Bundle;
-import android.text.method.ScrollingMovementMethod;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,9 +12,21 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import app.akexorcist.bluetotohspp.library.BluetoothSPP;
 import app.akexorcist.bluetotohspp.library.BluetoothState;
@@ -22,13 +34,11 @@ import app.akexorcist.bluetotohspp.library.DeviceList;
 
 public class FirstFragment extends Fragment {
     BluetoothSPP bt;
-    TextInputEditText etMessage;
-    TextView tvMessage;
-    String clientName = "";
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
+    private TextView tvMessage;
+    private String clientName;
+    private TextInputEditText etMessage = null;
+
+    private FirebaseFirestore firestore;
 
     @Override
     public View onCreateView(
@@ -42,38 +52,59 @@ public class FirstFragment extends Fragment {
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        etMessage = view.findViewById(R.id.etMessage);
-        tvMessage = view.findViewById(R.id.tvMessage);
-        tvMessage.setMovementMethod(new ScrollingMovementMethod());
+        view.findViewById(R.id.btnSend).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String info = etMessage.getText().toString();
+                bt.send(info, true);
+
+                etMessage.setText("");
+                showInfo("Me : "+info);
+            }
+        });
+
         view.findViewById(R.id.btnSelectDevices).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                /*
-                NavHostFragment.findNavController(FirstFragment.this)
-                        .navigate(R.id.action_FirstFragment_to_SecondFragment);
-                 */
-                if(bt.getServiceState() == BluetoothState.STATE_CONNECTED) {
+                if(bt.getServiceState() == BluetoothState.STATE_CONNECTED){
                     bt.disconnect();
                 } else {
                     bt.startDiscovery();
-                    Intent intent = new Intent(getActivity(), DeviceList.class);
-                    intent.putExtra("bluetooth_devices", "Bluetooth devices");
-                    intent.putExtra("no_devices_found", "No device");
-                    intent.putExtra("scanning", "Scanning");
-                    intent.putExtra("scan_for_devices", "Search");
-                    intent.putExtra("select_device", "Select");
+                    Intent intent = new Intent(view.getContext(), DeviceList.class);
                     startActivityForResult(intent, BluetoothState.REQUEST_CONNECT_DEVICE);
                 }
             }
         });
 
-        view.findViewById(R.id.btnSend).setOnClickListener(new View.OnClickListener() {
+        tvMessage = view.findViewById(R.id.tvMessage);
+        TextInputEditText etView = view.findViewById(R.id.etMessage);;
+        etMessage = etView;
+
+        view.findViewById(R.id.btnGetList).setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
-                String info = etMessage.getText().toString();
-                bt.send(info,true);
-                etMessage.setText("");
-                showInfo("Me : "+info);
+            public void onClick(View v) {
+                //get list from collection firestore
+                firestore.collection("spplogs")
+                        .document("sensor1")
+                        .collection("data")
+                        .orderBy("date", Query.Direction.ASCENDING)
+                        .get()
+                        .addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+                            @Override
+                            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+                                //TODO :
+                                for (QueryDocumentSnapshot document : queryDocumentSnapshots){
+                                    String data = "data : " + document.get("value");
+                                    showInfo(data);
+                                }
+                            }
+                        })
+                        .addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+
+                            }
+                        });
             }
         });
     }
@@ -81,31 +112,31 @@ public class FirstFragment extends Fragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        ((AppCompatActivity)getActivity()).getSupportActionBar().setTitle(getString(R.string.first_fragment_label));
+
+        firestore = FirebaseFirestore.getInstance();
 
         bt = new BluetoothSPP(getActivity());
-        bt.setOnDataReceivedListener(new BluetoothSPP.OnDataReceivedListener() {
-            public void onDataReceived(byte[] data, String message) {
-                showInfo(clientName+" : "+message);
-            }
-        });
         bt.setBluetoothConnectionListener(new BluetoothSPP.BluetoothConnectionListener() {
+            @Override
             public void onDeviceConnected(String name, String address) {
-                // Do something when successfully connected
-                clientName = ""+name+"("+address+")";
-                showInfo("onDeviceConnected "+""+name+"("+address+")");
+                clientName = name+"("+address+")";
+                showInfo("onDeviceConnected "+clientName);
             }
 
+            @Override
             public void onDeviceDisconnected() {
-                // Do something when connection was disconnected
                 showInfo("onDeviceDisconnected");
             }
 
+            @Override
             public void onDeviceConnectionFailed() {
-                // Do something when connection failed
                 showInfo("onDeviceConnectionFailed");
             }
         });
+
         bt.setBluetoothStateListener(new BluetoothSPP.BluetoothStateListener() {
+            @Override
             public void onServiceStateChanged(int state) {
                 if(state == BluetoothState.STATE_CONNECTED) {
                     // Do something when successfully connected
@@ -123,45 +154,87 @@ public class FirstFragment extends Fragment {
             }
         });
 
-        if(!bt.isBluetoothAvailable()) {
-            // any command for bluetooth is not available
+        bt.setOnDataReceivedListener(new BluetoothSPP.OnDataReceivedListener() {
+            @Override
+            public void onDataReceived(byte[] data, String message) {
+                showInfo(clientName+" : "+message);
+                save(message);
+            }
+        });
+
+        if(!bt.isBluetoothAvailable()){
+            //TODO : bluetooth is not available
             showInfo("bluetooth is not available");
         } else {
-            if (!bt.isBluetoothEnabled()) {
+            if(!bt.isBluetoothEnabled()){
+                //TODO : request enable bluetooth
                 Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                 startActivityForResult(intent, BluetoothState.REQUEST_ENABLE_BT);
             } else {
-                if(!bt.isServiceAvailable()) {
-                    bt.setupService();
-                    bt.startService(BluetoothState.DEVICE_ANDROID);
-                    //setup();
+                if(!bt.isServiceAvailable()){
+                    setupAndStartService();
                 }
             }
         }
     }
 
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if(requestCode == BluetoothState.REQUEST_CONNECT_DEVICE) {
-            if(resultCode == Activity.RESULT_OK)
-                bt.connect(data);
-        } else if(requestCode == BluetoothState.REQUEST_ENABLE_BT) {
-            if(resultCode == Activity.RESULT_OK) {
-                bt.setupService();
-                bt.startService(BluetoothState.DEVICE_ANDROID);
-                //setup();
+    private void save(String message) {
+        Map<String, Object> newValue = new HashMap<>();
+        newValue.put("value", message);
+        newValue.put("client", clientName);
+        newValue.put("year", 2021);
+        newValue.put("date", new Date());
+
+        firestore.collection("spplogs")
+                .document("sensor1")
+                .collection("data")
+                .add(newValue)
+                .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                    @Override
+                    public void onSuccess(DocumentReference documentReference) {
+                        Log.d("SPP", "New saved data id : "+ documentReference.getId());
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.w("SPP", "Error adding new data", e);
+                    }
+                });
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == BluetoothState.REQUEST_ENABLE_BT){
+            if(resultCode == Activity.RESULT_OK){
+                setupAndStartService();
             } else {
-                // Do something if user doesn't choose any device (Pressed back)
+                showInfo("bluetooth is not enabled, please enable it");
+            }
+        } else if(requestCode == BluetoothState.REQUEST_CONNECT_DEVICE){
+            if(resultCode == Activity.RESULT_OK){
+                bt.connect(data);
+            } else {
+                showInfo("ada masalah");
             }
         }
+    }
+
+    private void setupAndStartService() {
+        //TODO : what we want
+        bt.setupService();
+        bt.startService(BluetoothState.DEVICE_ANDROID);
+    }
+
+    private void showInfo(String info) {
+        //TODO : what we want
+        tvMessage.append("\n"+info);
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
         bt.stopService();
-    }
-
-    private void showInfo(String info){
-        tvMessage.append("\n"+info);
     }
 }
