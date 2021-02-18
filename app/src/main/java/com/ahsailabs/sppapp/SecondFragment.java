@@ -61,12 +61,10 @@ public class SecondFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 String info = etMessage.getText().toString();
-                save(info);
-                /*
                 bt.send(info, true);
 
                 etMessage.setText("");
-                showInfo("Me : "+info);*/
+                showInfo("Me : "+info);
             }
         });
 
